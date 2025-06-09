@@ -1,0 +1,21 @@
+name: dal-env
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.7.10
+  - pip
+  - numpy
+  - cudatoolkit=10.2  
+  - pytorch=1.7.1
+  - torchvision=0.8.2
+  - cudnn
+  - pip:
+      - argparse
+      - torchvision
+      - torch
+      - matplotlib
+      - tqdm
+      - pillow
+      - scikit-learn

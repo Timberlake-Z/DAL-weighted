@@ -9,6 +9,8 @@ import torchvision.transforms as trn
 import torchvision.datasets as dset
 import torch.nn.functional as F
 from models.wrn import WideResNet
+import os
+import logging
 
 import utils.svhn_loader as svhn
 from utils.display_results import get_measures, print_measures
@@ -62,36 +64,38 @@ train_transform = trn.Compose([trn.RandomHorizontalFlip(), trn.RandomCrop(32, pa
 test_transform = trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)])
 
 if args.dataset == 'cifar10':
-    train_data_in = dset.CIFAR10('../data/cifarpy', train=True, transform=train_transform)
+    # tim modified 
+    train_data_in = dset.CIFAR10('../data/cifarpy', train=True, transform=train_transform, download=True)
     test_data = dset.CIFAR10('../data/cifarpy', train=False, transform=test_transform)
-    cifar_data = dset.CIFAR100('../data/cifarpy', train=False, transform=test_transform) 
+    # cifar_data = dset.CIFAR100('../data/cifarpy', train=False, transform=test_transform) 
     num_classes = 10
 else:
     train_data_in = dset.CIFAR100('../data/cifarpy', train=True, transform=train_transform)
     test_data = dset.CIFAR100('../data/cifarpy', train=False, transform=test_transform)
-    cifar_data = dset.CIFAR10('../data/cifarpy', train=False, transform=test_transform)
+    # cifar_data = dset.CIFAR10('../data/cifarpy', train=False, transform=test_transform)
     num_classes = 100
 
-ood_data = TinyImages(transform=trn.Compose([trn.ToTensor(), trn.ToPILImage(), trn.RandomCrop(32, padding=4), trn.RandomHorizontalFlip(), trn.ToTensor(), trn.Normalize(mean, std)]), exclude_cifar = True)
+# ood_data = TinyImages(transform=trn.Compose([trn.ToTensor(), trn.ToPILImage(), trn.RandomCrop(32, padding=4), trn.RandomHorizontalFlip(), trn.ToTensor(), trn.Normalize(mean, std)]), exclude_cifar = True)
+ood_data = TinyImages(transform=trn.Compose([trn.ToTensor(), trn.ToPILImage(), trn.RandomCrop(32, padding=4), trn.RandomHorizontalFlip(), trn.ToTensor(), trn.Normalize(mean, std)]))
 
 train_loader_in = torch.utils.data.DataLoader(train_data_in, batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=False)
 train_loader_out = torch.utils.data.DataLoader(ood_data, batch_size=args.oe_batch_size, shuffle=True, num_workers=4, pin_memory=True)
 test_loader = torch.utils.data.DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=4, pin_memory=False)
 
-texture_data = dset.ImageFolder(root="../data/dtd/images", transform=trn.Compose([trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]))
-svhn_data = svhn.SVHN(root='../data/svhn/', split="test",transform=trn.Compose( [trn.ToTensor(), trn.Normalize(mean, std)]), download=False)
-places365_data = dset.ImageFolder(root="../data/places365_standard/", transform=trn.Compose([trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]))
-lsunc_data = dset.ImageFolder(root="../data/LSUN", transform=trn.Compose([trn.Resize(32), trn.ToTensor(), trn.Normalize(mean, std)]))
-lsunr_data = dset.ImageFolder(root="../data/LSUN_resize", transform=trn.Compose([trn.Resize(32), trn.ToTensor(), trn.Normalize(mean, std)]))
-isun_data = dset.ImageFolder(root="../data/iSUN",transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)]))
+# texture_data = dset.ImageFolder(root="../data/dtd/images", transform=trn.Compose([trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]))
+# svhn_data = svhn.SVHN(root='../data/svhn/', split="test",transform=trn.Compose( [trn.ToTensor(), trn.Normalize(mean, std)]), download=False)
+# places365_data = dset.ImageFolder(root="../data/places365_standard/", transform=trn.Compose([trn.Resize(32), trn.CenterCrop(32), trn.ToTensor(), trn.Normalize(mean, std)]))
+# lsunc_data = dset.ImageFolder(root="../data/LSUN", transform=trn.Compose([trn.Resize(32), trn.ToTensor(), trn.Normalize(mean, std)]))
+# lsunr_data = dset.ImageFolder(root="../data/LSUN_resize", transform=trn.Compose([trn.Resize(32), trn.ToTensor(), trn.Normalize(mean, std)]))
+# isun_data = dset.ImageFolder(root="../data/iSUN",transform=trn.Compose([trn.ToTensor(), trn.Normalize(mean, std)]))
 
-texture_loader = torch.utils.data.DataLoader(texture_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
-svhn_loader = torch.utils.data.DataLoader(svhn_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
-places365_loader = torch.utils.data.DataLoader(places365_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
-lsunc_loader = torch.utils.data.DataLoader(lsunc_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
-lsunr_loader = torch.utils.data.DataLoader(lsunr_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
-isun_loader = torch.utils.data.DataLoader(isun_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
-cifar_loader = torch.utils.data.DataLoader(cifar_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
+# texture_loader = torch.utils.data.DataLoader(texture_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
+# svhn_loader = torch.utils.data.DataLoader(svhn_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
+# places365_loader = torch.utils.data.DataLoader(places365_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
+# lsunc_loader = torch.utils.data.DataLoader(lsunc_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
+# lsunr_loader = torch.utils.data.DataLoader(lsunr_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
+# isun_loader = torch.utils.data.DataLoader(isun_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
+# cifar_loader = torch.utils.data.DataLoader(cifar_data, batch_size=args.test_bs, shuffle=True, num_workers=4, pin_memory=False)
 ood_num_examples = len(test_data) // 5
 expected_ap = ood_num_examples / (ood_num_examples + len(test_data))
 concat = lambda x: np.concatenate(x, axis=0)
@@ -175,6 +179,7 @@ def train(epoch, gamma):
 
         loss_avg = loss_avg * 0.8 + float(loss) * 0.2
         sys.stdout.write('\r epoch %2d %d/%d loss %.2f' %(epoch, batch_idx + 1, len(train_loader_in), loss_avg))
+        logging.info(f"Epoch {epoch:2d} Batch {batch_idx+1}/{len(train_loader_in)} Loss {loss_avg:.4f}")
         scheduler.step()
     return gamma
 
@@ -190,9 +195,19 @@ def test():
             correct += pred.eq(target.data).sum().item()
     return correct / len(test_loader.dataset) * 100
 
-
-
+# path tim
+os.makedirs("./logs/testrun", exist_ok=True)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(message)s',
+    handlers=[
+        # path tim
+        logging.FileHandler("./logs/testrun/train_log.txt"),  
+        logging.StreamHandler(sys.stdout)             
+    ]
+)
 net = WideResNet(args.layers, num_classes, args.widen_factor, dropRate=args.droprate).cuda()
+os.makedirs("./checkpoints/testrun", exist_ok=True)
 if args.dataset == 'cifar10':
     model_path = './models/cifar10_wrn_pretrained_epoch_99.pt'
 else:
@@ -208,13 +223,16 @@ for epoch in range(args.epochs):
     gamma = train(epoch, gamma)
    
     if epoch % 10 == 9: 
-        net.eval()
-        in_score = get_ood_scores(test_loader, in_dist=True)
-        metric_ll = []
-        metric_ll.append(get_and_print_results(svhn_loader, in_score))
-        metric_ll.append(get_and_print_results(lsunc_loader, in_score))
-        metric_ll.append(get_and_print_results(isun_loader, in_score))
-        metric_ll.append(get_and_print_results(texture_loader, in_score))
-        metric_ll.append(get_and_print_results(places365_loader, in_score))
-        print('\n & %.2f & %.2f & %.2f' % tuple((100 * torch.Tensor(metric_ll).mean(0)).tolist()))
+        # net.eval()
+        # in_score = get_ood_scores(test_loader, in_dist=True)
+        # metric_ll = []
+        # metric_ll.append(get_and_print_results(svhn_loader, in_score))
+        # metric_ll.append(get_and_print_results(lsunc_loader, in_score))
+        # metric_ll.append(get_and_print_results(isun_loader, in_score))
+        # metric_ll.append(get_and_print_results(texture_loader, in_score))
+        # metric_ll.append(get_and_print_results(places365_loader, in_score))
+        # print('\n & %.2f & %.2f & %.2f' % tuple((100 * torch.Tensor(metric_ll).mean(0)).tolist()))
+        # path tim
+        torch.save(net.state_dict(), f"./checkpoints/testrun/wrn_epoch_{epoch}.pth")
+        print(f"✅ saved checkpoint: ./checkpoints/testrun/wrn_epoch_{epoch}.pth")
 
